@@ -1,6 +1,13 @@
 <?php
 session_start();
 include '../config/db.php';
+// Ensure admin is logged in
+if (!isset($_SESSION['admin_id'])) {
+    header("Location: admin_login.php");
+    exit();
+}
+
+$admin_id = $_SESSION['admin_id'];
 
 $admin_name = $_SESSION['admin_name'] ?? 'Admin';
 $admin_email = $_SESSION['admin_email'] ?? 'admin@example.com';
@@ -16,11 +23,9 @@ if ($assignmentId === null) {
 
 // Fetch assignment details from the database
 $stmt = $conn->prepare("SELECT * FROM assignments WHERE id = ?");
-$stmt->bind_param("i", $assignmentId);  // Bind the integer parameter
-$stmt->execute();
+$stmt->execute([$assignmentId]);  // Pass the value directly in the execute array
+$assignment = $stmt->fetch(PDO::FETCH_ASSOC);  // Fetch the row as an associative array
 
-$result = $stmt->get_result();
-$assignment = $result->fetch_assoc();
 
 // If assignment not found, redirect to assignments.php
 if (!$assignment) {
@@ -35,8 +40,9 @@ if (!$assignment) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assignment Details</title>
+    <title>Hudsmer Student Services</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="shortcut icon" href="../assets/images/favicon.ico" type="image/x-icon" />
     <script>
         function showSection(sectionId) {
             // document.getElementById("dashboard").style.display = "none";
@@ -53,15 +59,35 @@ if (!$assignment) {
             dropdown.classList.toggle("hidden");
         }
     </script>
+       <style>
+        /* Custom styles to fix sidebar */
+        body {
+            display: flex;
+            height: 100vh; /* Ensure the body takes up the full viewport height */
+            overflow: hidden; /* Prevent the body from scrolling */
+        }
+
+        aside {
+            height: 100vh; /* Make the sidebar full height */
+            position: sticky; /* Fix the sidebar */
+            top: 0; /* Stick it to the top */
+            overflow: hidden; /* Hide scrollbars on the sidebar */
+        }
+
+        main {
+            overflow-y: auto; /* Enable vertical scrolling for the main content */
+            flex: 1; /* Take up remaining space */
+        }
+    </style>
 </head>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
-<body class="bg-gray-100 flex">
+<body class="bg-gray-100 flex ">
 
     <!-- Sidebar -->
     <aside class="w-64 bg-gray-800 text-white min-h-screen p-6">
         <div class="text-center mb-8">
-            <h2 class="text-xl font-bold">Admin Panel</h2>
+            <h2 class="text-xl font-bold">Hudsmer Student Services</h2>
         </div>
 
        <!-- Admin Info -->
@@ -83,11 +109,19 @@ if (!$assignment) {
 
         <!-- Navigation Links -->
         <nav>
-            <a href="admin_dashboard.php" class="block w-full text-left py-2 px-4 rounded-md bg-gray-700 hover:bg-gray-600 mb-2">Dashboard</a>
-            <a href="users.php" class="block w-full text-left py-2 px-4 rounded-md bg-gray-700 hover:bg-gray-600 mb-2">Users</a>
-            <a href="assignments.php" class="block w-full text-left py-2 px-4 rounded-md bg-gray-700 hover:bg-gray-600 mb-2">Assignments</a>
-        </nav>
-
+        <a href="admin_dashboard.php" onclick="showSection('dashboard')" class="block w-full text-left py-2 px-4 rounded-md bg-gray-700 hover:bg-gray-600 mb-2 flex items-center">
+            <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
+        </a>
+        <a href="users.php" onclick="showSection('users')" class="block w-full text-left py-2 px-4 rounded-md bg-gray-700 hover:bg-gray-600 mb-2 flex items-center">
+            <i class="fas fa-users mr-2"></i> Users
+        </a>
+        <a href="assignments.php" onclick="showSection('assignments')" class="block w-full text-left py-2 px-4 rounded-md bg-gray-700 hover:bg-gray-600 mb-2 flex items-center">
+            <i class="fas fa-file-alt mr-2"></i> Assignments
+        </a>
+         <a href="chat.php" onclick="showSection('chat')" class="block w-full text-left py-2 px-4 rounded-md bg-gray-700 hover:bg-gray-600 mb-2 flex items-center">
+            <i class="fas fa-comments mr-2"></i> Chat
+        </a>
+    </nav>
         <!-- Sign Out -->
         <div class="mt-6">
             <a href="logout.php" class="block mx-auto bg-red-500 text-white py-2 rounded-md hover:bg-red-600 px-4">Sign Out</a>
@@ -95,7 +129,7 @@ if (!$assignment) {
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 p-8 bg-gradient-to-br from-gray-100 to-gray-200 min-h-screen">
+    <main class="flex-1 p-8 bg-yellow-200 to-gray-200 min-h-screen">
     <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8 border border-gray-300 relative transition hover:shadow-2xl">
         <a href="assignments.php" class="absolute top-4 right-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-2 px-4 rounded-full shadow-md transition-transform transform hover:scale-105">← Back to Assignments</a>
 
@@ -132,6 +166,14 @@ if (!$assignment) {
                 <p class="text-gray-800 font-medium bg-gray-100 p-2 rounded-md border border-gray-300"><?= htmlspecialchars($assignment['num_pages'] ?? 'N/A') ?></p>
             </div>
             <div>
+                <strong class="block font-semibold text-blue-600 uppercase mb-1">University:</strong>
+                <p class="text-gray-800 font-medium underline bg-gray-100 p-2 rounded-md border border-gray-300"><?= htmlspecialchars($assignment['university'] ?? 'N/A') ?></p>
+            </div>
+            <div>
+                <strong class="block font-semibold text-blue-600 uppercase mb-1">Country:</strong>
+                <p class="text-gray-800 font-medium underline bg-gray-100 p-2 rounded-md border border-gray-300"><?= htmlspecialchars($assignment['country'] ?? 'N/A') ?></p>
+            </div>
+            <div>
                 <strong class="block font-semibold text-blue-600 uppercase mb-1">Full Name:</strong>
                 <p class="text-gray-800 font-medium bg-gray-100 p-2 rounded-md border border-gray-300"><?= htmlspecialchars($assignment['full_name'] ?? 'N/A') ?></p>
             </div>
@@ -158,7 +200,9 @@ if (!$assignment) {
         <div class="mb-6">
             <strong class="block font-semibold text-blue-600 uppercase mb-1">Uploaded File:</strong>
             <?php if (!empty($assignment['document_path'])): ?>
-                <a href="download.php?file=<?= urlencode($assignment['document_path']) ?>" class="text-blue-600 hover:text-blue-800 font-semibold underline transition-opacity hover:opacity-80">📥 Download File</a>
+                <a href="../<?= htmlspecialchars($assignment['document_path']) ?>" class="text-blue-600 hover:text-blue-800 font-semibold underline transition-opacity hover:opacity-80" download>📥 Download File</a>
+                &nbsp;&nbsp;&nbsp;
+                <a href="../<?= htmlspecialchars($assignment['document_path']) ?>" class="text-blue-600 hover:text-blue-800 font-semibold underline transition-opacity hover:opacity-80" target="_blank">📥 Open File</a>
 
 
             <?php else: ?>

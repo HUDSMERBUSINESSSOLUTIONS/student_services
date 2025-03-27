@@ -16,7 +16,7 @@ include_once(__DIR__ . '/../config/db.php');
         body {
             margin: 0;
             font-family: Arial, sans-serif;
-            padding-top: 60px;
+            padding-top: 50px;
             background-color: #f4f4f4;
         }
 
@@ -25,15 +25,14 @@ include_once(__DIR__ . '/../config/db.php');
             padding: 10px 0;
             color: white;
             position: fixed;
-            top: 10px;
-            left:10px;
-            right:10px;
+            top: 0;
+            left:0;
+            right:0;
             z-index: 1000;
             display: flex;
             align-items: center;
             justify-content: space-between;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            border-radius: 20px
         }
         
         .nav-links {
@@ -237,22 +236,25 @@ include_once(__DIR__ . '/../config/db.php');
 </div>
 
         <div class="nav-links">
-            <a href="/assignmenthelp/index.php">Home</a>
-            <a href="/assignmenthelp/services.php">Services</a>
-            <a href="/assignmenthelp/about_us.php">About Us</a>
-            <a href="/assignmenthelp/how_its_work.php">How Its Work</a>
+            <a href="./index.php">Home</a>
+            <a href="./services.php">Services</a>
+            <a href="./about_us.php">About Us</a>
+            <a href="./how_its_work.php">How Its Work</a>
         </div>
  
         <div class="user-logo">
-            <button onclick="window.location.href='/assignmenthelp/form.php'" class="order-btn">Order</button>
+            <button onclick="window.location.href='./form.php'" class="order-btn">Order</button>
             <i class="fas fa-user m-0 p-0 fa-lg text-white dropdown-toggle" id="userDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="cursor: pointer;"></i>
             <i class="fas fa-bars menu-icon ml-2" onclick="toggleSidebar()"></i>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-                <a class="dropdown-item custom-dropdown" href="/assignmenthelp/templates/signup.php">
+                <!-- <a class="dropdown-item custom-dropdown" href="./templates/signup.php">
                     <i class="fas fa-user-plus mr-1"></i> Signup
-                </a>
-                <a class="dropdown-item custom-dropdown" href="/assignmenthelp/templates/login.php">
+                </a> -->
+                <a class="dropdown-item custom-dropdown" href="./templates/login.php">
                     <i class="fas fa-sign-in-alt mr-1"></i> Login
+                </a>
+                <a class="dropdown-item custom-dropdown" href="./templates/logout.php">
+                    <i class="fas fa-sign-out-alt mr-1"></i> Logout
                 </a>
             </div>
         </div>
@@ -267,12 +269,12 @@ include_once(__DIR__ . '/../config/db.php');
     </div>
  
     <!-- Sidebar Links -->
-    <a href="/assignmenthelp/index.php"><i class="fas fa-home"></i> Home</a>
-    <a href="/assignmenthelp/services.php"><i class="fas fa-concierge-bell"></i> Services</a>
-    <a href="/assignmenthelp/about_us.php"><i class="fas fa-info-circle"></i> About Us</a>
-    <a href="/assignmenthelp/how_its_work.php"><i class="fas fas fa-cogs"></i>How Its Work</a>
+    <a href="./index.php"><i class="fas fa-home"></i> Home</a>
+    <a href="./services.php"><i class="fas fa-concierge-bell"></i> Services</a>
+    <a href="./about_us.php"><i class="fas fa-info-circle"></i> About Us</a>
+    <a href="./how_its_work.php"><i class="fas fas fa-cogs"></i>How Its Work</a>
  
-    <a href="/assignmenthelp/logout.php" class="logout-btn text-center">
+    <a href="./logout.php" class="logout-btn text-center">
         <i class="fas fa-sign-out-alt"></i> Logout
     </a>
 </div>

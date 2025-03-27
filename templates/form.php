@@ -2,14 +2,14 @@
 // Include database connection
 include '../config/db.php';
 session_start();
- 
-// Check if user is logged in and fetch student_id
+
+// Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     echo '<div class="alert alert-danger">You must be logged in to submit an assignment.</div>';
     exit;
 }
 $student_id = $_SESSION['user_id'];
- 
+
 if (isset($_POST['submit'])) {
     try {
         // Sanitize and collect form data
@@ -23,40 +23,70 @@ if (isset($_POST['submit'])) {
         $deadline = $_POST['deadline'];
         $num_pages = (int)$_POST['num_pages'];
         $assignment_details = htmlspecialchars(trim($_POST['assignment_details']));
-        $upload_dir = '../uploads/';
-        $file_name = null;
- 
-        // File Upload Handling
-        if (!empty($_FILES['document']['name'])) {
-            $file_name = basename($_FILES['document']['name']);
-            $file_size = $_FILES['document']['size'];
-            $file_tmp = $_FILES['document']['tmp_name'];
+        function save_uploaded_file($file, $allowedExtensions = ['pdf', 'doc', 'docx', 'txt', 'zip', 'rar'], $maxSize = 10 * 1024 * 1024) {
+            $upload_dir = __DIR__ . "/uploads/";
+        
+            // Ensure the uploads folder exists
+            if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+        
+            // Get file info
+            $file_name = $file['name'];
+            $file_tmp = $file['tmp_name'];
+            $file_size = $file['size'];
+            $file_error = $file['error'];
             $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
-            $allowed_exts = ['pdf', 'doc', 'docx', 'txt', 'zip', 'rar'];
- 
-            if (in_array($file_ext, $allowed_exts) && $file_size <= 10 * 1024 * 1024) { // Max 10MB
-                $new_file_name = time() . '_' . $file_name;
-                move_uploaded_file($file_tmp, $upload_dir . $new_file_name);
-                $file_name = $new_file_name;
+        
+            // Validate file type
+            if (!in_array($file_ext, $allowedExtensions)) {
+                return "Invalid file type!";
+            }
+        
+            // Check file size
+            if ($file_size > $maxSize) {
+                return "File is too large!";
+            }
+        
+            // Check for errors in upload
+            if ($file_error !== 0) {
+                return "There was an error uploading the file.";
+            }
+        
+            // Create a unique file name
+            $uniqueFileName = uniqid('file_', true) . '.' . $file_ext;
+            $destination = $upload_dir . $uniqueFileName;
+        
+            // Move file to destination properly
+            if (move_uploaded_file($file_tmp, $destination)) {
+                return "uploads/" . $uniqueFileName;
             } else {
-                throw new Exception('Invalid file type or size exceeds 10MB');
+                return "Failed to move file.";
             }
         }
- 
-        // Validate student_id exists in 'users' table (to avoid FK errors)
+        
+        // Example use
+        if (!empty($_FILES['document']['name'])) {
+            $result = save_uploaded_file($_FILES['document']);
+            if (strpos($result, "uploads/") !== false) {
+                $document_path = $result; // Save path to DB
+            } else {
+                $errors[] = $result; // Capture error
+            }
+        }
+
+        // Validate student_id exists in 'users' table
         $checkUser = $conn->prepare("SELECT id FROM users WHERE id = :student_id");
         $checkUser->bindParam(':student_id', $student_id, PDO::PARAM_INT);
         $checkUser->execute();
- 
+
         if ($checkUser->rowCount() === 0) {
             throw new Exception('Invalid student ID. Please log in again.');
         }
- 
-        // Database Insertion with PDO syntax
+
+        // Database Insertion
         $stmt = $conn->prepare("INSERT INTO assignments
             (student_id, full_name, email, phone, university, country, subject_code, subject_name, deadline, num_pages, assignment_details, document_path)
             VALUES (:student_id, :full_name, :email, :phone, :university, :country, :subject_code, :subject_name, :deadline, :num_pages, :assignment_details, :document_path)");
- 
+
         // Bind parameters properly
         $stmt->bindParam(':student_id', $student_id, PDO::PARAM_INT);
         $stmt->bindParam(':full_name', $full_name);
@@ -70,7 +100,7 @@ if (isset($_POST['submit'])) {
         $stmt->bindParam(':num_pages', $num_pages, PDO::PARAM_INT);
         $stmt->bindParam(':assignment_details', $assignment_details);
         $stmt->bindParam(':document_path', $file_name);
- 
+
         // Execute and check for errors
         if ($stmt->execute()) {
             echo '<div class="alert alert-success">Assignment submitted successfully!</div>';

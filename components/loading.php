@@ -1,5 +1,8 @@
 <?php
 function showLoading() {
+    // Define the base URL dynamically
+    $base_url = "/assignmentHelp/";
+
     echo '
     <div id="loading" style="
         position: fixed;
@@ -41,7 +44,7 @@ function showLoading() {
             "></div>
 
             <!-- Fixed Image -->
-            <img src="assets/images/loadinglogo.png" alt="Loading" style="
+            <img src="'.$base_url.'assets/images/loadinglogo.png" alt="Loading" style="
                 width: 50%;
                 height: 50%;
                 border-radius: 50%;

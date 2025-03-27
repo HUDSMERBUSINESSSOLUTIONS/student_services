@@ -15,12 +15,10 @@ if ($userId === null) {
 }
 
 // Fetch user details from the database (MySQLi version)
-$stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
-$stmt->bind_param("i", $userId);
+$stmt = $conn->prepare("SELECT * FROM users WHERE id = :userId");
+$stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
 $stmt->execute();
-$result = $stmt->get_result();
-$user = $result->fetch_assoc();
-
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
 // If user not found, redirect to users.php
 if (!$user) {
     header("Location: users.php");
@@ -28,11 +26,10 @@ if (!$user) {
 }
 
 // Fetch all assignments related to this user
-$assignmentsStmt = $conn->prepare("SELECT * FROM assignments WHERE student_id = ?");
-$assignmentsStmt->bind_param("i", $userId);
+$assignmentsStmt = $conn->prepare("SELECT * FROM assignments WHERE student_id = :userId");
+$assignmentsStmt->bindParam(':userId', $userId, PDO::PARAM_INT);
 $assignmentsStmt->execute();
-$assignmentsResult = $assignmentsStmt->get_result();
-$assignments = $assignmentsResult->fetch_all(MYSQLI_ASSOC);
+$assignments = $assignmentsStmt->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 
@@ -41,21 +38,42 @@ $assignments = $assignmentsResult->fetch_all(MYSQLI_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Details</title>
+    <title>Hudsmer Student Services</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="shortcut icon" href="../assets/images/favicon.ico" type="image/x-icon" />
     <script>
         function toggleDropdown() {
             var dropdown = document.getElementById("adminDropdown");
             dropdown.classList.toggle("hidden");
         }
     </script>
+       <style>
+        /* Custom styles to fix sidebar */
+        body {
+            display: flex;
+            height: 100vh; /* Ensure the body takes up the full viewport height */
+            overflow: hidden; /* Prevent the body from scrolling */
+        }
+
+        aside {
+            height: 100vh; /* Make the sidebar full height */
+            position: sticky; /* Fix the sidebar */
+            top: 0; /* Stick it to the top */
+            overflow: hidden; /* Hide scrollbars on the sidebar */
+        }
+
+        main {
+            overflow-y: auto; /* Enable vertical scrolling for the main content */
+            flex: 1; /* Take up remaining space */
+        }
+    </style>
      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
-<body class="bg-gray-100 flex">
+<body class="bg-gray-100 flex ">
      <!-- Sidebar -->
      <aside class="w-64 bg-gray-800 text-white min-h-screen p-6">
         <div class="text-center mb-8">
-            <h2 class="text-xl font-bold">Admin Panel</h2>
+            <h2 class="text-xl font-bold">Hudsmer Student Services</h2>
         </div>
  <!-- Admin Info -->
  <div class="mb-6 relative">
@@ -74,11 +92,20 @@ $assignments = $assignmentsResult->fetch_all(MYSQLI_ASSOC);
             </div>
         </div>
          <!-- Navigation Links -->
-        <nav>
-            <a href="admin_dashboard.php" class="block py-2 px-4 rounded-md bg-gray-700 hover:bg-gray-600 mb-2">Dashboard</a>
-            <a href="users.php" class="block py-2 px-4 rounded-md bg-gray-700 hover:bg-gray-600 mb-2">Users</a>
-            <a href="assignments.php" class="block py-2 px-4 rounded-md bg-gray-700 hover:bg-gray-600 mb-2">Assignments</a>
-        </nav>
+         <nav>
+        <a href="admin_dashboard.php" onclick="showSection('dashboard')" class="block w-full text-left py-2 px-4 rounded-md bg-gray-700 hover:bg-gray-600 mb-2 flex items-center">
+            <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
+        </a>
+        <a href="users.php" onclick="showSection('users')" class="block w-full text-left py-2 px-4 rounded-md bg-gray-700 hover:bg-gray-600 mb-2 flex items-center">
+            <i class="fas fa-users mr-2"></i> Users
+        </a>
+        <a href="assignments.php" onclick="showSection('assignments')" class="block w-full text-left py-2 px-4 rounded-md bg-gray-700 hover:bg-gray-600 mb-2 flex items-center">
+            <i class="fas fa-file-alt mr-2"></i> Assignments
+        </a>
+         <a href="chat.php" onclick="showSection('chat')" class="block w-full text-left py-2 px-4 rounded-md bg-gray-700 hover:bg-gray-600 mb-2 flex items-center">
+            <i class="fas fa-comments mr-2"></i> Chat
+        </a>
+    </nav>
          <!-- Sign Out -->
 
         <div class="mt-6">
@@ -87,7 +114,7 @@ $assignments = $assignmentsResult->fetch_all(MYSQLI_ASSOC);
     </aside>
      <!-- Main Content -->
 
-    <main class="flex-1 p-8 bg-gradient-to-br from-gray-100 to-gray-200 min-h-screen">
+    <main class="flex-1 p-8 bg-yellow-200 from-gray-100 to-gray-200 min-h-screen">
         <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8 border border-gray-300 relative">
             <h1 class="text-4xl font-bold text-gray-800 mb-6">👤 User Details</h1>
             

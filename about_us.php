@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once(__DIR__ . '/templates/chats.php');
+include_once(__DIR__ . '../chats.php');
 include './components/loading.php';
 showLoading();
 ?>
@@ -84,15 +84,14 @@ showLoading();
         .content {
             position: relative;
             z-index: 1;
-            padding: 50px;
         }
 
         .custom-box {
             background-color: rgba(255, 255, 255, 0.8); 
             border-radius: 15px;
             padding: 20px;
-            margin: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 100%; 
         }
         .custom-box h2 i {
             color: #4f46e5;
@@ -313,15 +312,23 @@ showLoading();
                     text-align: center;
                 }
                 .expertise-list li {
-                    text-align: center;
-                    margin-left: auto;
-                    margin-right: auto;
+                    width: 100%;
                 }
+                .hero {
+                    height: 60vh;            
+                }
+            .hero h1 {
+                font-size: 2rem;
             }
+            .hero p {
+                font-size: 18px;
+            }
+            }
+
 
     </style>
 </head>
-<body class="m-0 p-0">
+<body>
 <?php include 'templates/header.php'; ?>
     <div class="hero">
         <h1>Empowering Your Academic Journey</h1>
@@ -423,8 +430,8 @@ showLoading();
     </script>
 
     <div class="Expertise-section" style="display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
-        <div style="flex: 1; text-align: center;">
-            <img src="./assets/images/transparent-job.jpg" alt="Expertise">
+        <div class="col-md-6 text-center d-none d-md-block">
+            <img src="./assets/images/transparent-job.jpg" alt="Expertise" class="img-fluid">
         </div>
         <div style="flex: 1;">
             <h2 class="">Our Expertise</h2>

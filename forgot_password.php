@@ -1,215 +1,125 @@
-<!-- <?php
+<?php
 session_start();
-include 'includes/db.php';
-
-function generateOTP($length = 6) {
-    return str_pad(mt_rand(0, 999999), $length, '0', STR_PAD_LEFT);
-}
-
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (isset($_POST['sendOTP'])) {
-        $email = $_POST['email'];
-        $checkEmail = "SELECT * FROM users WHERE email=?";
-        $stmt = $conn->prepare($checkEmail);
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        if ($result->num_rows > 0) {
-            $otp = generateOTP();
-            $_SESSION['otp'] = $otp;
-            $_SESSION['email'] = $email;
-            echo "<script>alert('OTP sent: $otp');</script>"; // Replace with email sending logic
-        } else {
-            echo "<script>alert('Email not registered!');</script>";
-        }
-    }
-
-    if (isset($_POST['resetPassword'])) {
-        $otp = $_POST['otp'];
-        $newPassword = password_hash($_POST['newPassword'], PASSWORD_BCRYPT);
-
-        if ($otp === $_SESSION['otp']) {
-            $email = $_SESSION['email'];
-            $sql = "UPDATE users SET password=? WHERE email=?";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ss", $newPassword, $email);
-
-            if ($stmt->execute()) {
-                echo "<script>alert('Password reset successful! Redirecting to login...');</script>";
-                header("refresh:2;url=login.php");
-                session_destroy();
-            } else {
-                echo "<script>alert('Error updating password!');</script>";
-            }
-        } else {
-            echo "<script>alert('Invalid OTP!');</script>";
-        }
-    }
-}
 ?>
+ 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forgot Password</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)),
+                        url('./assets/images/blue-bg.jpg') center/cover no-repeat;
+                        padding-top:30px;
+                        padding-bottom:30px;
         }
-
-        .wrapper {
-            display: flex;
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        .login-container {
+            max-width: 400px;
+            width: 100%;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
             overflow: hidden;
-            max-width: 900px;
-            width: 100%;
         }
-
+        .login-container h3 {
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #6366F1;
+        }
         .image-container {
-            flex: 1;
-            background-color: #e5e7eb;
+            background: #6366F1;
+            padding: 10px;
+            position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-direction: column;
         }
 
-        .image-container img {
-            max-width: 100%;
-            max-height: 100%;
-        }
-
-        .content {
-            flex: 1;
-            padding: 40px;
-            text-align: center;
-        }
-
-        h2 {
-            margin-bottom: 20px;
-            color: #4f46e5;
-        }
-
-        .input-group {
-            position: relative;
-            margin: 15px 0;
-        }
-
-        .input-icon {
+        .image-container::after {
+            content: "";
             position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 18px;
-            color: #888;
-        }
-
-        input[type="email"], input[type="text"], input[type="password"] {
+            bottom: -10px;
+            left: 0;
             width: 100%;
-            padding: 12px 40px;
-            margin: 8px 0;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-sizing: border-box;
+            height: 20px;
+            background: #6366F1;
+            clip-path: polygon(0 0, 25% 100%, 50% 0, 75% 100%, 100% 0);
+            
         }
-
-        button {
-            background-color: #4f46e5;
-            color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-            margin: 8px 0;
+        .image-container img {
+            max-width: 100px;
+            height: auto;
         }
-
-        button:hover {
-            background-color: #3730a3;
+        .image-container p {
+            font-size: 8px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #fff;
         }
+        @media (max-width: 480px) {
+            .signup-container {
+                width: 90%;
+            }
 
-        a {
-            color: #4f46e5;
-            text-decoration: none;
-        }
+            .image-container {
+                padding: 15px;
+            }
 
-        a:hover {
-            text-decoration: none;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-        flex-direction: column;
-        padding: 20px;
-    }
-
-    .image-container img {
-        width: 200px;
-        height: auto;
-        margin-bottom: 15px;
-    }
-
-    .content {
-        text-align: center;
-    }
-        }
-    </style>
-    <script>
-        function toggleForms(step) {
-            const otpForm = document.getElementById('otpForm');
-            const resetForm = document.getElementById('resetForm');
-            const submitButton = document.getElementById('submitButton');
-
-            if (step === 1) {
-                otpForm.style.display = 'block';
-                resetForm.style.display = 'none';
-                submitButton.textContent = 'Send OTP';
-                submitButton.name = 'sendOTP';
-            } else {
-                otpForm.style.display = 'none';
-                resetForm.style.display = 'block';
-                submitButton.textContent = 'Reset Password';
-                submitButton.name = 'resetPassword';
+            .image-container img {
+                max-width: 80px;
             }
         }
-    </script>
+    </style>
 </head>
-<body onload="toggleForms(1);">
-    <div class="wrapper">
+ 
+<body>
+    <div class="login-container">
         <div class="image-container">
-            <img src="assets/images/forgotpassword.png" alt="Forgot Password">
+            <img src="./assets/images/loadinglogo.png" alt="Signup Image">
+            <p>Hudsmer Student Services</p>
         </div>
-        <div class="content">
-            <h2>Forgot Password</h2>
-            <p>Reset your password quickly and securely. Just follow the steps below.</p>
-            <form action="" method="POST">
-                <div id="otpForm" class="input-group">
-                    <i class="fas fa-envelope input-icon"></i>
-                    <input type="email" name="email" placeholder="Enter your email" required>
-                </div>
+ 
+    <?php
+    if (isset($_SESSION['error'])) {
+        echo "<div class='alert alert-danger'>{$_SESSION['error']}</div>";
+        unset($_SESSION['error']);
+    }
+ 
+    if (isset($_SESSION['success'])) {
+        echo "<div class='alert alert-success'>{$_SESSION['success']}</div>";
+        unset($_SESSION['success']);
+    }
+    ?>
+ 
+    <form action="password_forgot.php" method="POST" class="p-3">
+        <h3 class="text-center">Reset Password</h3>
+        <p class="text-center subheading">Enter your registered email, and we’ll send you a link to reset your password.</p>
 
-                <div id="resetForm" class="input-group" style="display: none;">
-                    <i class="fas fa-key input-icon"></i>
-                    <input type="text" name="otp" placeholder="Enter OTP" required>
-                    <i class="fas fa-lock input-icon"></i>
-                    <input type="password" name="newPassword" placeholder="New Password" required>
-                </div>
-
-                <button id="submitButton" type="submit" name="sendOTP">Send OTP</button>
-            </form>
-            <p><a href="login.php">Back to Login</a></p>
+        <div class="form-group">
+            <label for="email">Enter your email</label>
+            <input type="email" name="email" class="form-control" placeholder="Enter your email" required>
         </div>
-    </div>
+        <button type="submit" class="btn" style="background-color: #6366F1; color: white; width: 100%; border: none; padding: 10px; border-radius: 5px; cursor: pointer;">
+            Reset Password
+        </button>
+    </form>
+ 
+    <div class="text-center mt-1">
+    <a href="templates/login.php" style="color: #6366F1; font-size: 14px;text-decoration-none">Back to Login</a>
+</div>
+</div>
+ 
 </body>
-</html> -->
+</html>
+ 
+ 

@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once(__DIR__ . '/templates/chats.php');
+include_once(__DIR__ . '../chats.php');
 include './components/loading.php';
 showLoading();
 ?>
@@ -34,7 +34,7 @@ showLoading();
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            margin:0
+            margin:0;
         }
 
         .hero-section h1 {
@@ -230,6 +230,15 @@ showLoading();
             border-radius: 8px;
         }
         @media (max-width: 768px) {
+            .hero-section{
+                height: 60vh;
+            }
+        .hero-section h1 {
+            font-size: 2rem;
+        }
+        .hero-section p {
+            font-size: 18px;
+        }
             .faq-section, .faq-image {
                 width: 100%;
             }
@@ -243,13 +252,14 @@ showLoading();
         }
     </style>
 </head>
-<body class="m-0 p-0">
+<body>
 <?php include 'templates/header.php'; ?>
     <div class="hero-section">
         <h1>How It Works</h1>
         <p class="text-white">Your journey to academic excellence made simple and efficient</p>
         <a href="./form.php">
-            <button class="btn btn-primary">Order Now</button>
+            <button                     class="px-3 py-1" 
+            style="transition: transform 0.3s ease, background 0.3s; background-color: #4f46e5; color: #fff; text-decoration: none; border-radius: 8px; padding: 10px 20px; display: inline-block;fontsize: 18px">Order Now</button>
         </a>
         </div>
         <div class="steps-container">

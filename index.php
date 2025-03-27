@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once(__DIR__ . '/templates/chats.php');
+include './chats.php';
 include './components/loading.php';
 
 showLoading();
@@ -18,6 +18,7 @@ showLoading();
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+     <link rel="shortcut icon" href="./assets/images/favicon.ico" type="image/x-icon" />
     <!-- Custom Styles -->
     <link rel="stylesheet" href="assets/css/styles.css">
 
@@ -28,10 +29,7 @@ showLoading();
         /* General Styles */
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding:0;
         }
-
         /* Animations */
         @keyframes fadeIn {
             from {
@@ -69,7 +67,7 @@ showLoading();
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            margin:0
+            margin:0;
         }
 
 
@@ -84,10 +82,6 @@ showLoading();
             margin-top: 10px;
             animation: slideIn 2s ease-in-out;
             color:"#fff"
-        }
-
-        .hero-buttons {
-            margin-top: 20px;
         }
 
         .hero-buttons a {
@@ -219,10 +213,6 @@ showLoading();
             align-items: center;
             gap: 10px;
         }
-
-        h4,
-        h2,
-        p,
         .stars {
             line-height: 1.2;
         }
@@ -265,30 +255,37 @@ showLoading();
             background-color: #fff;
             padding: 50px 0;
         }
-
-        h2 {
-            margin-bottom: 20px;
-        }
         .stat-number, .stat-label {
-        color: white;
-    }
+            color: white;
+        }
+            /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero-section {
+                height: 60vh;            }
+            .hero-section h1 {
+                font-size: 2rem;
+            }
+            .hero-section p {
+                font-size: 18px;
+            }
+        }
     </style>
 </head>
 
 <body>
-<body class="m-0 p-0">
+<body>
 <?php include 'templates/header.php'; ?>
             <!-- Hero Section -->
             <section class="hero-section">
-                <h1 class="text-3xl md:text-5xl font-bold" style="animation: slideIn 1.5s ease-in-out;">Expert Assignment Help for Students</h1>
-                <p class="text-xl md:text-2xl mt-2 text-white" style="animation: slideIn 2s ease-in-out;">Get professional assistance with your assignments, essays, and projects. We deliver high-quality work on time.</p>
+                <h1 class="font-bold" style="animation: slideIn 1.5s ease-in-out;">Expert Assignment Help for Students</h1>
+                <p class="text-white" style="animation: slideIn 2s ease-in-out;">Get professional assistance with your assignments, essays, and projects. We deliver high-quality work on time.</p>
 
-                <div class="hero-buttons mt-5">
+                <div class="hero-buttons">
                     <a href="./form.php" class="btn"
                         style="transition: transform 0.3s ease, background 0.3s;background-color: #4f46e5;color: #fff">
                         Order Now
                     </a>
-                    <a href="/assignmenthelp/how_its_work.php" class="btn btn-outline-light"
+                    <a href="./how_its_work.php" class="btn btn-outline-light"
                         style="transition: transform 0.3s ease, background 0.3s;">
                         How It Works
                     </a>
@@ -433,22 +430,22 @@ showLoading();
                 document.addEventListener("DOMContentLoaded", function() {
                     const locations = [{
                             country: "Australia",
-                            image: "./assets/images/australia.jpg",
+                            image: "./assets/images/Australia.jpg",
                             description: "Australian university standards and requirements."
                         },
                         {
                             country: "Canada",
-                            image: "./assets/images/canada.jpg",
+                            image: "./assets/images/Canada.jpg",
                             description: "Dedicated support for Canadian students."
                         },
                         {
                             country: "Singapore",
-                            image: "./assets/images/singapore.jpg",
+                            image: "./assets/images/Singapore.jpg",
                             description: "Assignment assistance for Singapore universities."
                         },
                         {
                             country: "Malaysia",
-                            image: "./assets/images/malaysia.jpg",
+                            image: "./assets/images/Malaysia.jpg",
                             description: "Customized support for Malaysian students."
                         },
                         {
@@ -556,7 +553,12 @@ showLoading();
             <section class="py-20 text-white text-center" style="background-color: #4f46e5">
                 <h2 class="text-3xl font-bold">Ready to Excel in Your Academics?</h2>
                 <p class="text-xl mb-8 text-white">Submit your assignment details today and let our experts handle the rest.</p>
-                <a href="/assignmenthelp/templates/form.php" class="bg-white text-indigo-600 px-8 py-3 rounded-md shadow-lg text-decloration-none">Get Started Now</a>
+                <a href="./form.php" 
+                    class="px-3 py-1" 
+                    style="transition: transform 0.3s ease, background 0.3s; background-color: #fff; color: #4f46e5; text-decoration: none; border-radius: 8px; padding: 10px 20px; display: inline-block;fontsize: 18px">
+                    Get Started Now
+                </a>
+
             </section>
 
         </div>

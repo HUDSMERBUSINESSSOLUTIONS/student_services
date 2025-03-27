@@ -1,9 +1,9 @@
 <?php
 session_start();
 include './config/db.php';
-include_once(__DIR__ . '/templates/chats.php');
+include_once(__DIR__ . '../chats.php');
 include './components/loading.php';
-// Check if user is logged in and fetch student_id
+showLoading();
 if (!isset($_SESSION['user_id'])) {
     echo '<div class="alert alert-danger">You must be logged in to submit an assignment.</div>';
     exit;
@@ -12,7 +12,6 @@ $student_id = $_SESSION['user_id'];
  
 if (isset($_POST['submit'])) {
     try {
-        // Sanitize and collect form data
         $full_name = htmlspecialchars(trim($_POST['full_name']));
         $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
         $phone = htmlspecialchars(trim($_POST['phone']));
@@ -23,23 +22,54 @@ if (isset($_POST['submit'])) {
         $deadline = $_POST['deadline'];
         $num_pages = (int)$_POST['num_pages'];
         $assignment_details = htmlspecialchars(trim($_POST['assignment_details']));
-        $upload_dir = '../uploads/';
-        $file_name = null;
- 
-        // File Upload Handling
-        if (!empty($_FILES['document']['name'])) {
-            $file_name = basename($_FILES['document']['name']);
-            $file_size = $_FILES['document']['size'];
-            $file_tmp = $_FILES['document']['tmp_name'];
+        
+        function save_uploaded_file($file, $allowedExtensions = ['pdf', 'doc', 'docx', 'txt', 'zip', 'rar'], $maxSize = 10 * 1024 * 1024) {
+            $upload_dir = __DIR__ . "/uploads/";
+        
+            // Ensure the uploads folder exists
+            if (!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
+        
+            // Get file info
+            $file_name = $file['name'];
+            $file_tmp = $file['tmp_name'];
+            $file_size = $file['size'];
+            $file_error = $file['error'];
             $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
-            $allowed_exts = ['pdf', 'doc', 'docx', 'txt', 'zip', 'rar'];
- 
-            if (in_array($file_ext, $allowed_exts) && $file_size <= 10 * 1024 * 1024) { // Max 10MB
-                $new_file_name = time() . '_' . $file_name;
-                move_uploaded_file($file_tmp, $upload_dir . $new_file_name);
-                $file_name = $new_file_name;
+        
+            // Validate file type
+            if (!in_array($file_ext, $allowedExtensions)) {
+                return "Invalid file type!";
+            }
+        
+            // Check file size
+            if ($file_size > $maxSize) {
+                return "File is too large!";
+            }
+        
+            // Check for errors in upload
+            if ($file_error !== 0) {
+                return "There was an error uploading the file.";
+            }
+        
+            // Create a unique file name
+            $uniqueFileName = uniqid('file_', true) . '.' . $file_ext;
+            $destination = $upload_dir . $uniqueFileName;
+        
+            // Move file to destination properly
+            if (move_uploaded_file($file_tmp, $destination)) {
+                return "uploads/" . $uniqueFileName;
             } else {
-                throw new Exception('Invalid file type or size exceeds 10MB');
+                return "Failed to move file.";
+            }
+        }
+        
+        // Example use
+        if (!empty($_FILES['document']['name'])) {
+            $result = save_uploaded_file($_FILES['document']);
+            if (strpos($result, "uploads/") !== false) {
+                $document_path = $result; // Save path to DB
+            } else {
+                $errors[] = $result; // Capture error
             }
         }
  
@@ -69,11 +99,44 @@ if (isset($_POST['submit'])) {
         $stmt->bindParam(':deadline', $deadline);
         $stmt->bindParam(':num_pages', $num_pages, PDO::PARAM_INT);
         $stmt->bindParam(':assignment_details', $assignment_details);
-        $stmt->bindParam(':document_path', $file_name);
+        $stmt->bindParam(':document_path', $document_path);
  
         // Execute and check for errors
         if ($stmt->execute()) {
             echo '<div class="alert alert-success">Assignment submitted successfully!</div>';
+            // Prepare email content
+$subject = "Hudsmer Student Services - Assignment Submission Successful";
+$message = "
+<html>
+<head>
+<title>Assignment Submission Successful</title>
+</head>
+<body>
+<h3>Assignment Details Submitted Successfully!</h3>
+<p>Hi, we have received your assignment details.</p>
+<p>Our team will review your submission and get back to you soon.</p>
+<br><br>
+<p>If you have any questions, feel free to contact our support team.</p>
+</body>
+</html>
+";
+
+ 
+// Email headers
+$headers = "From: Hudsmer Student Services<support@hbsthesis.co.uk>\r\n";
+$headers .= "Reply-To: support@hbsthesis.co.uk\r\n";
+$headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+ 
+// Send the email
+if (mail($email, $subject, $message, $headers)) {
+    echo "<script>
+    alert('Assignment details submitted successfully! We will respond soon.');
+</script>";
+header("Location: form.php");
+ 
+} else {
+    echo "Failed to send email. Please try again.";
+}
         } else {
             throw new Exception('Failed to submit assignment: ' . implode(", ", $stmt->errorInfo()));
         }
@@ -82,7 +145,6 @@ if (isset($_POST['submit'])) {
     }
 }
 ?>
- 
  
 <!DOCTYPE html>
 <html lang="en">
@@ -94,6 +156,7 @@ if (isset($_POST['submit'])) {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
  
     <style>
         body {
@@ -167,18 +230,28 @@ if (isset($_POST['submit'])) {
             background-color: #fff;
         }
         @media (max-width: 768px) {
-            .heading-content h1 {
+            .heading-content{
+                height: 60vh;
+            }
+        .heading-content h1 {
             font-size: 2rem;
         }
         .heading-content p {
-            font-size: 20px;
+            font-size: 18px;
         }
+        }
+        .progress-container {
+            display: none;
+            margin-top: 10px;
+        }
+        .upload-success {
+            display: none;
+            margin-top: 10px;
+            text-align: center;
         }
     </style>
         <script>
-        // Client-side validation for future date and phone number
         $(document).ready(function() {
-            // Validate phone number (only numbers)
             $("#phone").on("input", function() {
                 if (!/^[0-9]*$/.test(this.value)) {
                     this.setCustomValidity("Phone number must contain only numbers.");
@@ -187,7 +260,6 @@ if (isset($_POST['submit'])) {
                 }
             });
  
-            // Validate future date for the deadline
             $("#deadline").on("input", function() {
                 var today = new Date();
                 var selectedDate = new Date(this.value);
@@ -200,7 +272,7 @@ if (isset($_POST['submit'])) {
         });
     </script>
 </head>
-<body class="m-0 p-0">
+<body>
 <?php include 'templates/header.php'; ?>
     <div class="container-fluid p-0 m-0">
     <section class="heading-content m-0 p-0">
@@ -243,7 +315,28 @@ if (isset($_POST['submit'])) {
     </div>
     <div class="form-group col-md-6">
         <label for="country">Country <span class="text-danger">*</span></label>
-        <input type="text" class="form-control" name="country" id="country" required>
+        <select class="form-control" name="country" id="country" required>
+        <option value="">Select Country</option>
+    </select>
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+    fetch("https://restcountries.com/v3.1/all")
+        .then(response => response.json())
+        .then(data => {
+            let countryDropdown = document.getElementById("country");
+            data.sort((a, b) => a.name.common.localeCompare(b.name.common)); // Sort alphabetically
+
+            data.forEach(country => {
+                let option = document.createElement("option");
+                option.value = country.name.common;
+                option.textContent = country.name.common;
+                countryDropdown.appendChild(option);
+            });
+        })
+        .catch(error => console.error("Error fetching country data:", error));
+});
+</script>
+
     </div>
 </div>
  
@@ -268,25 +361,66 @@ if (isset($_POST['submit'])) {
                     </div>
                 </div>
                 <div class="form-row">
-    <div class="form-group col-md-12">
-        <label for="assignment_details">Assignment Details
-            <span class="text-muted small">(Please provide details for referencing style, if any)</span>
-            <span class="text-danger">*</span>
-        </label>
-        <textarea class="form-control" name="assignment_details" id="assignment_details" required></textarea>
-    </div>
-</div>
-                <div class="form-group">
-                    <label for="document">Upload Document (Optional)</label>
-                    <div class="border border-dashed rounded p-4 text-center bg-light" onclick="document.getElementById('document').click()" style="cursor: pointer;">
-                        <input type="file" id="document" name="document" class="d-none" accept=".pdf,.doc,.docx,.txt,.zip,.rar" />
-                        <div class="d-flex flex-column align-items-center justify-content-center">
-                            <i class="fas fa-upload upload-icon text-muted mb-2"></i>
-                            <p class="small text-muted mb-1">Drag and drop your file here, or <a class="btn btn-link text-primary p-0">browse</a></p>
-                            <p class="small text-muted">Supported file types: PDF, DOC, DOCX, TXT, ZIP, RAR (Max 10MB)</p>
-                        </div>
+                    <div class="form-group col-md-12">
+                        <label for="assignment_details">Assignment Details
+                            <span class="text-muted small">(Please provide details for referencing style, if any)</span>
+                            <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" name="assignment_details" id="assignment_details" required></textarea>
                     </div>
                 </div>
+                <div class="form-group">
+        <label for="document">Upload Document (Optional)</label>
+        <div class="border border-dashed rounded p-4 text-center bg-light" onclick="document.getElementById('document').click()" style="cursor: pointer;">
+            <input type="file" id="document" name="document" class="d-none" accept=".pdf,.doc,.docx,.txt,.zip,.rar" />
+            <div class="d-flex flex-column align-items-center justify-content-center" id="upload-section">
+                <i class="fas fa-upload upload-icon text-muted mb-2"></i>
+                <p class="small text-muted mb-1">Drag and drop your file here, or <a class="btn btn-link text-primary p-0">browse</a></p>
+                <p class="small text-muted">Supported file types: PDF, DOC, DOCX, TXT, ZIP, RAR (Max 10MB)</p>
+            </div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress mt-2">
+                <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;"></div>
+            </div>
+            <p id="progress-text" class="text-center small mt-1">Uploading: 0%</p>
+        </div>
+
+        <div class="upload-success">
+            <i class="fas fa-check-circle text-success fa-2x"></i>
+            <p class="small text-success">File Submitted Successfully!</p>
+            <p id="uploaded-file-name" class="small font-weight-bold text-primary"></p> <!-- File name will be displayed here -->
+        </div>
+    </div>
+    <script>
+    $(document).ready(function () {
+        $('#document').change(function () {
+            var file = this.files[0];
+            if (file) {
+                $('.progress-container').show();
+                $('#upload-section').hide();
+                $('.upload-success').hide();
+                $('#progress-bar').css('width', '0%');
+                $('#progress-text').text('Uploading: 0%');
+
+                var progress = 0;
+                var interval = setInterval(function () {
+                    progress += 10;
+                    $('#progress-bar').css('width', progress + '%');
+                    $('#progress-text').text('Uploading: ' + progress + '%');
+
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        $('.progress-container').hide();
+                        $('.upload-success').show();
+                        $('#uploaded-file-name').text('File Name: ' + file.name); // Show file name below success message
+                    }
+                }, 200);
+            }
+        });
+    });
+</script>
  
                 <button type="submit" name="submit" class="btn btn-block py-2" style="background:#4f46e5; color:#fff">Submit Assignment</button>
             </form>
